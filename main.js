@@ -178,7 +178,7 @@ function findLeafForFile(app, file, preferredLeaf) {
 }
 
 /* =========================
-   PDF NAVIGATION (YOUR WORKING METHOD)
+   PDF NAVIGATION (WORKING METHOD)
    ========================= */
 
 async function jumpToPdfTarget(app, file, target, preferredLeaf, offsetTopPadding) {
@@ -267,10 +267,42 @@ class UnifiedOutlineView extends ItemView {
 
   async onOpen() { this.render(); }
 
+  // ✅ MD seçimi garanti görünür: inline style (tema override etse bile)
+  applyMdActiveStyle(selfEl, innerEl, isActive) {
+    if (!isActive) {
+      selfEl.style.backgroundColor = "";
+      selfEl.style.color = "";
+      selfEl.style.fontWeight = "";
+      selfEl.style.borderLeft = "";
+      selfEl.style.paddingLeft = "";
+      innerEl.style.color = "";
+      innerEl.style.fontWeight = "";
+      return;
+    }
+
+    selfEl.style.backgroundColor = "var(--nav-item-background-active, var(--interactive-accent))";
+    selfEl.style.color = "var(--nav-item-color-active, var(--text-on-accent))";
+    selfEl.style.fontWeight = "600";
+    selfEl.style.borderLeft = "3px solid var(--interactive-accent)";
+    selfEl.style.paddingLeft = "6px";
+
+    innerEl.style.color = "var(--nav-item-color-active, var(--text-on-accent))";
+    innerEl.style.fontWeight = "600";
+  }
+
   setData(file, kind, outline) {
     this.file = file;
     this.kind = kind;
     this.outline = outline || [];
+
+    // ✅ IMPORTANT FIX: activeId sıfırlama!
+    // MD’de tıklayınca file-open tetiklenip setData tekrar çağrılıyor;
+    // activeId null olursa seçili satır kayboluyor.
+    // Core Outline gibi davranmak için per-file son seçimi geri yükle.
+    if (file?.path) {
+      const remembered = this.plugin.lastSelectedIdByPath?.[file.path];
+      if (remembered) this.activeId = remembered;
+    }
 
     this.expanded = new Set();
     if (this.plugin.settings.rememberExpansionPerFile && file) {
@@ -280,7 +312,6 @@ class UnifiedOutlineView extends ItemView {
 
     if (this.plugin.settings.expandAllOnLoad) this.expandAll();
 
-    this.activeId = null;
     this.renderBody();
   }
 
@@ -368,7 +399,9 @@ class UnifiedOutlineView extends ItemView {
 
         const itemEl = parentEl.createDiv({ cls: "tree-item" });
         const selfEl = itemEl.createDiv({ cls: "tree-item-self is-clickable" });
-        if (this.activeId === node.id) selfEl.classList.add("is-active");
+
+        const isActive = (this.activeId === node.id);
+        if (isActive) selfEl.classList.add("is-active");
 
         const iconEl = selfEl.createDiv({ cls: "tree-item-icon" });
         if (hasChildren) {
@@ -391,12 +424,22 @@ class UnifiedOutlineView extends ItemView {
         const innerEl = selfEl.createDiv({ cls: "tree-item-inner" });
         innerEl.setText(node.title);
 
+        // ✅ MD seçimi görünür yap (tema bağımsız)
+        if (node.kind === "md") {
+          this.applyMdActiveStyle(selfEl, innerEl, isActive);
+        }
+
         if (this.plugin.settings.showPageBadges && node.kind === "pdf" && node.page) {
           const badge = selfEl.createSpan({ cls: "pdf-outline-page tag" });
           badge.setText(String(node.page));
         }
 
         selfEl.addEventListener("click", async () => {
+          // ✅ seçim kaybolmasın: per-file remember
+          if (this.file?.path) {
+            this.plugin.lastSelectedIdByPath[this.file.path] = node.id;
+          }
+
           this.activeId = node.id;
           this.renderBody();
 
@@ -482,6 +525,9 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     this.expansionState = loaded._expansionState ? loaded._expansionState : {};
     this.lastContentLeaf = null;
 
+    // ✅ NEW: remember selection per file (fixes MD losing selection)
+    this.lastSelectedIdByPath = {};
+
     // race guards
     this._updateToken = 0;
     this._lastRequestedPath = null;
@@ -495,19 +541,16 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     this.registerView(VIEW_TYPE, (leaf) => new UnifiedOutlineView(leaf, this));
     this.addSettingTab(new UnifiedOutlineSettingTab(this.app, this));
 
-    // active leaf change (ignore our view)
     this.registerEvent(this.app.workspace.on("active-leaf-change", async (leaf) => {
       const vt = leaf?.view?.getViewType?.();
       if (vt === VIEW_TYPE) return;
 
       if (leaf?.view?.file) this.lastContentLeaf = leaf;
 
-      // pass leaf file explicitly
       const file = leaf?.view?.file || null;
       if (file) await this.requestUpdate(file, leaf);
     }));
 
-    // file-open: schedule to next tick to avoid timing issues 【2-dd7497】【1-e4a638】
     this.registerEvent(this.app.workspace.on("file-open", async (file) => {
       if (!file) return;
 
@@ -520,7 +563,6 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
       }, 0);
     }));
 
-    // metadata changed: refresh md when active md changes
     this.registerEvent(this.app.metadataCache.on("changed", async (file) => {
       const active = this.app.workspace.getActiveFile?.();
       if (active && file && active.path === file.path && isMdFile(active)) {
@@ -559,7 +601,6 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     await leaf.setViewState({ type: VIEW_TYPE, active: false });
   }
 
-  // Only return our real view instance (prevents setData errors)
   async getView() {
     const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE);
     if (!leaves || !leaves.length) return null;
@@ -583,7 +624,6 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     return await this.getView();
   }
 
-  // “last request wins” wrapper (prevents PDF parse finishing late and overwriting MD)
   async requestUpdate(file, leaf) {
     if (!file?.path) return;
 
@@ -598,7 +638,6 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     const view = await this.ensureView();
     if (!view) return;
 
-    // if a newer request came in, stop
     if (token !== this._updateToken) return;
     if (file.path !== this._lastRequestedPath) return;
 
