@@ -1,143 +1,104 @@
-# 📌 Outline for All Files
+📌 Outline for All Files
+======================
 
-**Outline for All Files** is an Obsidian plugin that provides a **single, unified outline panel** for both **Markdown notes and PDF documents**.
+**Outline for All Files** is an Obsidian plugin that provides a **single, unified outline panel**
+for both **Markdown notes** and **PDF documents**.
 
-Unlike Obsidian’s built‑in Outline (Markdown‑only) or the default PDF outline view, this plugin automatically detects the active file and always shows the **correct outline without extra clicks**.
-
-**Plugin ID:** `all-outline`
-
----
-
-## ✨ Features
-
-- ✅ One unified outline panel for **Markdown and PDF**
-- ✅ Automatically switches outline when changing files
-- ✅ **PDF navigation is heading-based**, not page-based
-- ✅ PDF headings scroll with the **heading aligned to the top of the page**
-- ✅ Nested headings / bookmarks (tree view)
-- ✅ Search within outline titles
-- ✅ Expand / collapse all sections
-- ✅ Optional page number badges for PDF files
-- ✅ Remembers expand/collapse state per file
-- ✅ Stable behavior when switching between PDF ↔ Markdown (no stale outlines)
+Unlike Obsidian’s built-in Outline (Markdown-only) or the default PDF outline view,
+this plugin automatically adapts to the active file and always shows the correct outline —
+**no extra clicks, no stale state, no confusion**.
 
 ---
 
-## 📄 Supported File Types
+✨ Features
+----------
+
+✅ One unified outline panel for **Markdown + PDF**  
+✅ Automatically updates when switching files  
+✅ Markdown outline built from real headings (`#`, `##`, `###`, …)  
+✅ PDF outline based on bookmarks / table of contents  
+✅ Precise PDF navigation using offsets when available  
+✅ Selected heading is always **clearly highlighted**  
+✅ No selection loss when switching files  
+✅ No indentation jump on selection  
+✅ Page number badges (optional, right-aligned)  
+✅ Expand / collapse all sections  
+✅ Search within outline titles  
+✅ Remembers expand / collapse state **per file**  
+✅ Stable behavior when switching **MD ↔ PDF rapidly**
+
+---
+
+📄 Supported File Types
+----------------------
 
 ### Markdown (`.md`)
-- Outline is built from real Markdown headings (`#`, `##`, `###`, …)
+- Outline is built from actual Markdown headings
 - Updates dynamically when the note content changes
+- Clicking an item moves the cursor and scrolls to the correct heading
 
 ### PDF (`.pdf`)
-- Uses PDF bookmarks / table of contents
-- Navigates using **precise PDF offsets**
-- When offset information exists, the selected heading appears at the **top of the page**
-- Gracefully falls back when a PDF does not provide exact coordinates
+- Uses PDF bookmarks / outline if available
+- Navigates with deep links (`#page=&offset=`)
+- Headings are aligned to the **top of the page** when possible
+- Gracefully falls back when precise offsets are not provided
 
 ---
 
-## 🧭 Navigation Behavior
+🧭 Navigation Behavior
+---------------------
 
-### Markdown Navigation
-- Clicking an outline item moves the cursor to the correct section
-- The editor scrolls to the relevant heading for immediate reading
+### Markdown
+- Jump to heading
+- Cursor positioned correctly
+- No selection flicker or loss
 
-### PDF Navigation
-- Clicking an outline item navigates via **Obsidian PDF deep links**
-- Uses heading offsets when available instead of only page numbers
-- Ensures headings are positioned at the **top of the PDF page**, not centered
-
----
-
-## 🖥️ User Experience
-
-- Behaves like a native Obsidian side panel
-- Instantly refreshes when switching files:
-  - PDF → Markdown ✅
-  - Markdown → PDF ✅
-- No double-click requirement
-- No leftover outline from the previously opened file
+### PDF
+- Jump via Obsidian PDF deep-linking
+- Supports page + offset + zoom
+- Designed for reading, not thumbnails
 
 ---
 
-## ⚙️ Settings
+⚙️ Settings
+-----------
 
-The plugin includes the following configuration options:
+- **Hide built-in PDF sidebar**  
+  Hides Obsidian’s default PDF TOC / thumbnails panel
 
-- **Hide built‑in PDF sidebar**
-  Hides the default PDF thumbnails / TOC panel for a cleaner reading area
-
-- **Show PDF page number badges**
-  Displays page numbers next to PDF outline items
+- **Show PDF page number badges**  
+  Displays page numbers next to PDF outline items (aligned to the right)
 
 - **Expand all on file open**
-  Automatically expands all outline sections when opening a file
 
 - **Remember expansion state per file**
-  Saves expanded / collapsed state individually for each file
 
-- **Offset Top Padding (PDF fine‑tuning)**
-  Adds a small adjustment to PDF navigation in case a heading appears slightly lower than desired
-  (useful for certain PDFs)
+- **Offset Top Padding (PDF fine-tuning)**  
+  Small vertical adjustment if a PDF heading lands slightly too low
 
 ---
 
-## 🧠 Why “Outline for All Files”?
+🧠 Why “Outline for All Files”?
+-------------------------------
 
-Obsidian currently separates outlines by file type:
+Obsidian already has:
+- A great Markdown outline ✅
+- A separate PDF outline ✅
 
-- Markdown → Core Outline plugin
-- PDFs → Embedded PDF outline inside the viewer
+But switching between them breaks flow.
 
-**Outline for All Files** unifies this experience by providing:
-
-- One consistent outline location
-- Seamless navigation across file types
-- PDF behavior that feels closer to Markdown navigation
+**Outline for All Files** solves this by behaving like a **native panel** that “just works”
+for *whatever file is active* — Markdown or PDF.
 
 ---
 
-## 🛠️ Installation
+🛠 Installation
+---------------
+
+### Community Plugins (recommended)
+1. Open **Settings → Community plugins**
+2. Search for **Outline for All Files**
+3. Install & enable
 
 ### Manual Installation
-
-1. Download the plugin files
-2. Create the following folder:
-3. Place these files inside:
-- `main.js`
-- `manifest.json`
-- `styles.css`
-4. Enable **Outline for All Files** in Obsidian’s Community Plugins settings
-
----
-
-## 🚧 Known Limitations
-
-- PDF outlines depend on the quality of bookmarks provided by the PDF
-- PDFs without bookmarks cannot generate an outline
-- Some PDFs may require adjusting **Offset Top Padding** for perfect alignment
-
----
-
-## 📦 Plugin Information
-
-- **Name:** Outline for All Files
-- **ID:** `all-outline`
-- **Category:** Navigation / Productivity
-- **Scope:** Markdown + PDF
-
----
-
-## 🙌 Credits
-
-- Built with the Obsidian Plugin API
-- Inspired by Obsidian’s core Outline plugin and community PDF tools
-- Designed for users who frequently work with **long documents and mixed file types**
-
----
-
-## 💬 Feedback & Contributions
-
-Bug reports, feature requests, and contributions are welcome.
-Feel free to open an issue or submit a pull request.
+Copy these files into:
