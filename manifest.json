@@ -1,9 +1,9 @@
 {
   "id": "all-outline",
   "name": "Outline for All Files",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minAppVersion": "1.5.0",
-  "description": "Outline for All Files is an Obsidian plugin that provides a single, unified outline panel for both Markdown notes and PDF documents.",
+  "description": "A single, unified outline panel for both Markdown notes and PDF documents.",
   "author": "Cem Tan",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
