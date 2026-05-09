@@ -104,3 +104,40 @@ Obsidian currently separates outlines by file type:
 
 1. Download the plugin files
 2. Create the following folder:
+3. Place these files inside:
+- `main.js`
+- `manifest.json`
+- `styles.css`
+4. Enable **Outline for All Files** in Obsidian’s Community Plugins settings
+
+---
+
+## 🚧 Known Limitations
+
+- PDF outlines depend on the quality of bookmarks provided by the PDF
+- PDFs without bookmarks cannot generate an outline
+- Some PDFs may require adjusting **Offset Top Padding** for perfect alignment
+
+---
+
+## 📦 Plugin Information
+
+- **Name:** Outline for All Files
+- **ID:** `all-outline`
+- **Category:** Navigation / Productivity
+- **Scope:** Markdown + PDF
+
+---
+
+## 🙌 Credits
+
+- Built with the Obsidian Plugin API
+- Inspired by Obsidian’s core Outline plugin and community PDF tools
+- Designed for users who frequently work with **long documents and mixed file types**
+
+---
+
+## 💬 Feedback & Contributions
+
+Bug reports, feature requests, and contributions are welcome.
+Feel free to open an issue or submit a pull request.
