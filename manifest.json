@@ -1,0 +1,9 @@
+{
+  "id": "all-outline",
+  "name": "Outline for All Files",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Shows PDF Table of Contents (outline/bookmarks) in a right sidebar view with Obsidian-like Outline styling and page navigation. Optionally hides the built-in PDF sidebar.",
+  "author": "Cem Tan",
+  "isDesktopOnly": false
+}
