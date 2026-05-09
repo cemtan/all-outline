@@ -1,3 +1,7 @@
+/* ================================
+   Outline for All Files - styles.css
+   ================================ */
+
 /* View container */
 .pdf-outline-right-view {
   height: 100%;
@@ -5,6 +9,7 @@
   flex-direction: column;
 }
 
+/* Header */
 .pdf-outline-right-header {
   padding: 8px 8px 6px 8px;
   border-bottom: 1px solid var(--background-modifier-border);
@@ -17,12 +22,14 @@
   font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.02em;
-  text-transform: none;
   flex: 1;
 }
 
 /* Search */
-.outline-search-wrap { flex: 2; }
+.outline-search-wrap {
+  flex: 2;
+}
+
 .outline-search {
   width: 100%;
   font-size: 12px;
@@ -33,6 +40,7 @@
   color: var(--text-normal);
 }
 
+/* Actions */
 .pdf-outline-right-actions {
   display: flex;
   gap: 6px;
@@ -43,42 +51,83 @@
   padding: 2px 8px;
 }
 
+/* Body */
 .pdf-outline-right-body {
-  padding: 20px 0 6px 0; /* üstte 10px boşluk */
+  padding: 10px 0 6px 0; /* senin ayarın */
   overflow: auto;
 }
 
 /* Page badge */
 .pdf-outline-page.tag {
-  margin-left: 8px;
   font-size: 11px;
-  padding: 0px 6px;
+  padding: 0 6px;
   line-height: 18px;
   border-radius: 10px;
+  white-space: nowrap;
 }
 
-/* Rows */
+/* ================================
+   Tree rows layout
+   - FIX 1: Page badge right aligned
+   - FIX 2: No indent shift on active
+   ================================ */
+
+/* Make each row a flex line */
 .pdf-outline-right-body .tree-item-self {
+  display: flex;
+  align-items: center;
+  gap: 6px;               /* başlık ile rozet arası boşluk */
   padding-top: 2px;
   padding-bottom: 2px;
+
+  /* ✅ IMPORTANT: constant left padding for ALL rows
+     so active state never shifts indentation */
+  padding-left: 8px;
+
   position: relative;
   border-radius: 6px;
 }
 
+/* Heading text takes remaining space */
+.pdf-outline-right-body .tree-item-inner {
+  flex: 1;
+  min-width: 0;           /* uzun başlıklar rozetin üstüne taşmasın */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badge always on the far right */
+.pdf-outline-right-body .pdf-outline-page {
+  margin-left: auto;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/* Hover */
 .pdf-outline-right-body .tree-item-self:hover {
   background-color: var(--background-modifier-hover);
 }
 
-/* ✅ Fix #2:
-   Selected background = Obsidian accent
-   Text = white/contrast (theme controlled) */
+/* ================================
+   Active item (theme-friendly) WITHOUT indent shift
+   ================================ */
+
+/* Use Obsidian nav active vars if available; fallback to accent */
 .pdf-outline-right-body .tree-item-self.is-active {
-  background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
+  background-color: var(--nav-item-background-active, var(--interactive-accent));
+  color: var(--nav-item-color-active, var(--text-on-accent));
   font-weight: 600;
+
+  /* ✅ DO NOT change padding-left, margin-left, or border-left here */
 }
 
-/* Optional left indicator line (same accent, but redundant; kept for clarity) */
+/* Keep inner readable */
+.pdf-outline-right-body .tree-item-self.is-active .tree-item-inner {
+  color: var(--nav-item-color-active, var(--text-on-accent));
+}
+
+/* ✅ Left accent indicator (absolute so it does NOT push text) */
 .pdf-outline-right-body .tree-item-self.is-active::before {
   content: "";
   position: absolute;
@@ -90,7 +139,10 @@
   border-radius: 0 2px 2px 0;
 }
 
-/* Hide built-in PDF sidebar */
+/* ================================
+   Hide built-in PDF sidebar (optional)
+   ================================ */
+
 body.pdf-outline-right-hide .pdf-viewer .sidebarContainer,
 body.pdf-outline-right-hide .pdf-viewer .pdf-sidebar,
 body.pdf-outline-right-hide .pdf-container .sidebarContainer,
