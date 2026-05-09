@@ -1,161 +1,90 @@
-/* ================================
-   Outline for All Files - styles.css
-   ================================ */
-
-/* View container */
-.pdf-outline-right-view {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+.pdf-outline-right-body > .tree-item-children {
+  border-left: none !important;
 }
 
-/* Header */
-.pdf-outline-right-header {
-  padding: 8px 8px 6px 8px;
-  border-bottom: 1px solid var(--background-modifier-border);
+.pdf-outline-right-body > .tree-item-children::before {
+  display: none !important;
+}
+
+.pdf-outline-right-body .tree-item-self {
   display: flex;
-  gap: 8px;
+}
+
+.pdf-outline-right-body .pdf-outline-page {
+  margin-left: auto !important;
+  flex-shrink: 0;
+}
+
+.pdf-outline-right-header {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  padding: 8px;
+  position: relative;
+}
+
+.pdf-outline-right-title {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.outline-search-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pdf-outline-right-actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.pdf-outline-right-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  column-gap: 6px;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .pdf-outline-right-title {
   font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 0.02em;
-  flex: 1;
+  white-space: nowrap;
 }
 
-/* Search */
+/* Arama kutusu */
 .outline-search-wrap {
-  flex: 2;
+  min-width: 0;
 }
 
 .outline-search {
   width: 100%;
-  font-size: 12px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid var(--background-modifier-border);
-  background: var(--background-secondary);
-  color: var(--text-normal);
 }
 
-/* Actions */
 .pdf-outline-right-actions {
-  display: flex;
-  gap: 6px;
+  display: contents;
 }
 
 .pdf-outline-right-actions button {
-  font-size: 12px;
-  padding: 2px 8px;
-}
-
-/* Body */
-.pdf-outline-right-body {
-  padding: 10px 0 6px 0; /* senin ayarın */
-  overflow: auto;
-}
-
-/* Page badge */
-.pdf-outline-page.tag {
-  font-size: 11px;
-  padding: 0 6px;
-  line-height: 18px;
-  border-radius: 10px;
   white-space: nowrap;
 }
 
-/* ================================
-   Tree rows layout
-   - FIX 1: Page badge right aligned
-   - FIX 2: No indent shift on active
-   ================================ */
-
-/* Make each row a flex line */
-.pdf-outline-right-body .tree-item-self {
-  display: flex;
-  align-items: center;
-  gap: 6px;               /* başlık ile rozet arası boşluk */
-  padding-top: 2px;
-  padding-bottom: 2px;
-
-  /* ✅ IMPORTANT: constant left padding for ALL rows
-     so active state never shifts indentation */
-  padding-left: 8px;
-
-  position: relative;
-  border-radius: 6px;
-}
-
-/* Heading text takes remaining space */
-.pdf-outline-right-body .tree-item-inner {
-  flex: 1;
-  min-width: 0;           /* uzun başlıklar rozetin üstüne taşmasın */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Badge always on the far right */
-.pdf-outline-right-body .pdf-outline-page {
-  margin-left: auto;
-  margin-right: 6px;
-  flex-shrink: 0;
-}
-
-/* Hover */
-.pdf-outline-right-body .tree-item-self:hover {
-  background-color: var(--background-modifier-hover);
-}
-
-/* ================================
-   Active item (theme-friendly) WITHOUT indent shift
-   ================================ */
-
-/* Use Obsidian nav active vars if available; fallback to accent */
-.pdf-outline-right-body .tree-item-self.is-active {
-  background-color: var(--nav-item-background-active, var(--interactive-accent));
-  color: var(--nav-item-color-active, var(--text-on-accent));
-  font-weight: 600;
-
-  /* ✅ DO NOT change padding-left, margin-left, or border-left here */
-}
-
-/* Keep inner readable */
-.pdf-outline-right-body .tree-item-self.is-active .tree-item-inner {
-  color: var(--nav-item-color-active, var(--text-on-accent));
-}
-
-/* ✅ Left accent indicator (absolute so it does NOT push text) */
-.pdf-outline-right-body .tree-item-self.is-active::before {
-  content: "";
+.pdf-outline-right-header::before {
+  content: "Table of Contents";
   position: absolute;
-  left: 0;
-  top: 2px;
-  bottom: 2px;
-  width: 3px;
-  background-color: var(--interactive-accent);
-  border-radius: 0 2px 2px 0;
+  left: 22px;
+  bottom: -50px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-normal);
+  pointer-events: none;
 }
 
-/* ================================
-   Hide built-in PDF sidebar (optional)
-   ================================ */
-
-body.pdf-outline-right-hide .pdf-viewer .sidebarContainer,
-body.pdf-outline-right-hide .pdf-viewer .pdf-sidebar,
-body.pdf-outline-right-hide .pdf-container .sidebarContainer,
-body.pdf-outline-right-hide .mod-pdf .sidebarContainer {
-  display: none !important;
-}
-
-/* Ensure main container uses full width */
-body.pdf-outline-right-hide .pdf-viewer .mainContainer,
-body.pdf-outline-right-hide .mod-pdf .mainContainer {
-  left: 0 !important;
-}
-
-body.pdf-outline-right-hide .mod-pdf .pdfViewer {
-  margin-left: 0 !important;
+.pdf-outline-right-body {
+  padding-top: 55px;
 }

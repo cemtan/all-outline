@@ -50,11 +50,13 @@ async function normalizeDest(pdf, dest) {
 
 function extractOffsetFromDestArray(destArray) {
   const type = destArray[1] && destArray[1].name ? destArray[1].name : null;
-  let left = null, top = null, zoom = null;
+  let left = null,
+    top = null,
+    zoom = null;
 
   if (type === "XYZ") {
     left = destArray[2] ?? null;
-    top  = destArray[3] ?? null;
+    top = destArray[3] ?? null;
     zoom = destArray[4] ?? null;
   } else if (type === "FitH") {
     top = destArray[2] ?? null;
@@ -192,10 +194,10 @@ async function jumpToPdfTarget(app, file, target, preferredLeaf, offsetTopPaddin
 
   let linkText;
   if (hasAnyOffset) {
-    const left = (target.left ?? 0);
-    const baseTop = (target.top ?? 0);
+    const left = target.left ?? 0;
+    const baseTop = target.top ?? 0;
     const top = baseTop + (Number.isFinite(offsetTopPadding) ? offsetTopPadding : 0);
-    const zoom = (target.zoom ?? 0);
+    const zoom = target.zoom ?? 0;
     linkText = `${file.path}#page=${page}&offset=${left},${top},${zoom}`;
   } else {
     linkText = `${file.path}#page=${page}`;
@@ -217,7 +219,7 @@ async function jumpToPdfTarget(app, file, target, preferredLeaf, offsetTopPaddin
     }
   } catch (_) {}
 
-  new Notice("PDF konumuna gidilemedi (offset/deep-link).");
+  new Notice("Could not access the position (offset/deep-link).");
 }
 
 /* =========================
@@ -267,27 +269,43 @@ class UnifiedOutlineView extends ItemView {
 
   async onOpen() { this.render(); }
 
-  // ✅ MD seçimi garanti görünür: inline style (tema override etse bile)
+  // ✅ MD seçimi görünür: layout değiştirmeden (indent kaydırmaz)
   applyMdActiveStyle(selfEl, innerEl, isActive) {
     if (!isActive) {
-      selfEl.style.backgroundColor = "";
-      selfEl.style.color = "";
-      selfEl.style.fontWeight = "";
-      selfEl.style.borderLeft = "";
-      selfEl.style.paddingLeft = "";
-      innerEl.style.color = "";
-      innerEl.style.fontWeight = "";
+      selfEl.style.removeProperty("background-color");
+      selfEl.style.removeProperty("color");
+      selfEl.style.removeProperty("font-weight");
+      selfEl.style.removeProperty("box-shadow");
+      innerEl.style.removeProperty("color");
+      innerEl.style.removeProperty("font-weight");
       return;
     }
 
-    selfEl.style.backgroundColor = "var(--nav-item-background-active, var(--interactive-accent))";
-    selfEl.style.color = "var(--nav-item-color-active, var(--text-on-accent))";
-    selfEl.style.fontWeight = "600";
-    selfEl.style.borderLeft = "3px solid var(--interactive-accent)";
-    selfEl.style.paddingLeft = "6px";
+    selfEl.style.setProperty(
+      "background-color",
+      "var(--nav-item-background-active, var(--interactive-accent))",
+      "important"
+    );
+    selfEl.style.setProperty(
+      "color",
+      "var(--nav-item-color-active, var(--text-on-accent))",
+      "important"
+    );
+    selfEl.style.setProperty("font-weight", "600", "important");
 
-    innerEl.style.color = "var(--nav-item-color-active, var(--text-on-accent))";
-    innerEl.style.fontWeight = "600";
+    // layout bozmaz
+    selfEl.style.setProperty(
+      "box-shadow",
+      "inset 3px 0 0 var(--interactive-accent)",
+      "important"
+    );
+
+    innerEl.style.setProperty(
+      "color",
+      "var(--nav-item-color-active, var(--text-on-accent))",
+      "important"
+    );
+    innerEl.style.setProperty("font-weight", "600", "important");
   }
 
   setData(file, kind, outline) {
@@ -295,10 +313,6 @@ class UnifiedOutlineView extends ItemView {
     this.kind = kind;
     this.outline = outline || [];
 
-    // ✅ IMPORTANT FIX: activeId sıfırlama!
-    // MD’de tıklayınca file-open tetiklenip setData tekrar çağrılıyor;
-    // activeId null olursa seçili satır kayboluyor.
-    // Core Outline gibi davranmak için per-file son seçimi geri yükle.
     if (file?.path) {
       const remembered = this.plugin.lastSelectedIdByPath?.[file.path];
       if (remembered) this.activeId = remembered;
@@ -344,7 +358,7 @@ class UnifiedOutlineView extends ItemView {
     header.createDiv({ cls: "pdf-outline-right-title", text: "Outline" });
 
     const searchWrap = header.createDiv({ cls: "outline-search-wrap" });
-    this.searchEl = searchWrap.createEl("input", { type: "search", placeholder: "Başlık ara…" });
+    this.searchEl = searchWrap.createEl("input", { type: "search", placeholder: "Search…" });
     this.searchEl.className = "outline-search";
     this.searchEl.addEventListener("input", () => {
       this.filterText = (this.searchEl.value || "").toLowerCase();
@@ -353,13 +367,13 @@ class UnifiedOutlineView extends ItemView {
 
     const actions = header.createDiv({ cls: "pdf-outline-right-actions" });
 
-    const btnExpand = actions.createEl("button", { text: "Hepsini Aç" });
+    const btnExpand = actions.createEl("button", { text: "Expand All" });
     btnExpand.classList.add("mod-cta");
     btnExpand.addEventListener("click", () => {
       this.expandAll(); this.persistExpansion(); this.renderBody();
     });
 
-    const btnCollapse = actions.createEl("button", { text: "Hepsini Kapat" });
+    const btnCollapse = actions.createEl("button", { text: "Collapse All" });
     btnCollapse.addEventListener("click", () => {
       this.collapseAll(); this.persistExpansion(); this.renderBody();
     });
@@ -373,11 +387,11 @@ class UnifiedOutlineView extends ItemView {
     this.bodyEl.empty();
 
     if (!this.file) {
-      this.bodyEl.createDiv({ cls: "setting-item-description", text: "Bir dosya açıldığında outline burada görünecek." });
+      this.bodyEl.createDiv({ cls: "setting-item-description", text: "This is the outline position." });
       return;
     }
     if (!this.outline?.length) {
-      this.bodyEl.createDiv({ cls: "setting-item-description", text: "Bu dosyada başlık/outline bulunamadı." });
+      this.bodyEl.createDiv({ cls: "setting-item-description", text: "" });
       return;
     }
 
@@ -424,7 +438,6 @@ class UnifiedOutlineView extends ItemView {
         const innerEl = selfEl.createDiv({ cls: "tree-item-inner" });
         innerEl.setText(node.title);
 
-        // ✅ MD seçimi görünür yap (tema bağımsız)
         if (node.kind === "md") {
           this.applyMdActiveStyle(selfEl, innerEl, isActive);
         }
@@ -435,7 +448,6 @@ class UnifiedOutlineView extends ItemView {
         }
 
         selfEl.addEventListener("click", async () => {
-          // ✅ seçim kaybolmasın: per-file remember
           if (this.file?.path) {
             this.plugin.lastSelectedIdByPath[this.file.path] = node.id;
           }
@@ -480,7 +492,7 @@ class UnifiedOutlineSettingTab {
     containerEl.createEl("h3", { text: "Unified Outline (MD + PDF)" });
 
     new Setting(containerEl)
-      .setName("PDF'in sol TOC/Sidebar alanını gizle")
+      .setName("Hide sidebar of a pdf file.")
       .addToggle((t) => {
         t.setValue(this.plugin.settings.hideBuiltinPdfSidebar);
         t.onChange(async (v) => {
@@ -491,7 +503,7 @@ class UnifiedOutlineSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Sayfa numarası rozetini göster")
+      .setName("Show page number.")
       .addToggle((t) => {
         t.setValue(this.plugin.settings.showPageBadges);
         t.onChange(async (v) => {
@@ -501,7 +513,7 @@ class UnifiedOutlineSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Offset Top Padding (ince ayar)")
+      .setName("Offset Top Padding (fine tuning)")
       .addText((t) => {
         t.setPlaceholder("0")
           .setValue(String(this.plugin.settings.offsetTopPadding ?? 0))
@@ -525,10 +537,8 @@ module.exports = class UnifiedOutlinePlugin extends Plugin {
     this.expansionState = loaded._expansionState ? loaded._expansionState : {};
     this.lastContentLeaf = null;
 
-    // ✅ NEW: remember selection per file (fixes MD losing selection)
     this.lastSelectedIdByPath = {};
 
-    // race guards
     this._updateToken = 0;
     this._lastRequestedPath = null;
 
