@@ -101,4 +101,20 @@ for *whatever file is active* — Markdown or PDF.
 3. Install & enable
 
 ### Manual Installation
-Copy these files into:
+Copy these files into .vault/.obsidian/plugins/all-outline/
+- `main.js`
+- `styles.css`
+- `manifest.json`
+
+Reload Obsidian.
+
+---
+
+📜 License
+----------
+
+MIT License
+
+---
+
+Made with care for people who actually live in their outlines.
