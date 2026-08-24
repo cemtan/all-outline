@@ -1,5 +1,13 @@
 /* eslint-disable no-console */
-const { Plugin, ItemView, Setting, setIcon, Notice } = require("obsidian");
+const {
+  Plugin,
+  ItemView,
+  PluginSettingTab,
+  Setting,
+  setIcon,
+  Notice
+} = require("obsidian");
+
 
 const VIEW_TYPE = "unified-outline-view";
 
@@ -269,7 +277,6 @@ class UnifiedOutlineView extends ItemView {
 
   async onOpen() { this.render(); }
 
-  // ✅ MD seçimi görünür: layout değiştirmeden (indent kaydırmaz)
   applyMdActiveStyle(selfEl, innerEl, isActive) {
     if (!isActive) {
       selfEl.style.removeProperty("background-color");
@@ -353,6 +360,90 @@ class UnifiedOutlineView extends ItemView {
   render() {
     this.contentEl.empty();
     this.rootEl = this.contentEl.createDiv({ cls: "pdf-outline-right-view" });
+/* eslint-disable no-console */
+const { Plugin, ItemView, Setting, setIcon, Notice } = require("obsidian");
+
+const VIEW_TYPE = "unified-outline-view";
+
+const DEFAULT_SETTINGS = {
+  hideBuiltinPdfSidebar: true,
+  showPageBadges: true,
+  expandAllOnLoad: false,
+  rememberExpansionPerFile: true,
+  offsetTopPadding: 0
+};
+
+function isPdfFile(file) {
+  return !!file && file.extension && file.extension.toLowerCase() === "pdf";
+}
+function isMdFile(file) {
+  return !!file && file.extension && file.extension.toLowerCase() === "md";
+}
+function safeText(s) {
+  return (s ?? "").toString();
+}
+
+/* =========================
+   PDF.JS LOADING + PARSING
+   ========================= */
+
+async function getPdfJsLib() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+
+  try {
+    const obs = require("obsidian");
+    if (typeof obs.loadPdfJs === "function") {
+      const out = await obs.loadPdfJs();
+      if (out && out.pdfjsLib) return out.pdfjsLib;
+      if (out && out.getDocument) return out;
+    }
+  } catch (_) {}
+
+  throw new Error("PDF.js (pdfjsLib) not available. Obsidian build may have changed.");
+}
+
+async function normalizeDest(pdf, dest) {
+  let d = dest;
+  if (!d) return null;
+  if (typeof d === "string") d = await pdf.getDestination(d);
+  if (!d || !Array.isArray(d) || !d.length) return null;
+  return d;
+}
+
+function extractOffsetFromDestArray(destArray) {
+  const type = destArray[1] && destArray[1].name ? destArray[1].name : null;
+  let left = null,
+    top = null,
+    zoom = null;
+
+  if (type === "XYZ") {
+    left = destArray[2] ?? null;
+    top = destArray[3] ?? null;
+    zoom = destArray[4] ?? null;
+  } else if (type === "FitH") {
+    top = destArray[2] ?? null;
+  } else if (type === "FitV") {
+    left = destArray[2] ?? null;
+  }
+  return { left, top, zoom, type };
+}
+
+async function resolveDestToTarget(pdf, dest) {
+  try {
+    const destArray = await normalizeDest(pdf, dest);
+    if (!destArray) return { page: null, left: null, top: null, zoom: null };
+
+    const ref = destArray[0];
+    if (!ref) return { page: null, left: null, top: null, zoom: null };
+
+    const pageIndex = await pdf.getPageIndex(ref); // 0-based
+    const page = pageIndex + 1; // 1-based
+
+    const { left, top, zoom } = extractOffsetFromDestArray(destArray);
+    return { page, left, top, zoom };
+  } catch (_) {
+    return { page: null, left: null, top: null, zoom: null };
+  }
 
     const header = this.rootEl.createDiv({ cls: "pdf-outline-right-header" });
     header.createDiv({ cls: "pdf-outline-right-title", text: "Outline" });
@@ -484,12 +575,19 @@ class UnifiedOutlineView extends ItemView {
    SETTINGS TAB
    ========================= */
 
-class UnifiedOutlineSettingTab {
-  constructor(app, plugin) { this.app = app; this.plugin = plugin; }
+class UnifiedOutlineSettingTab extends PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
 
-  display(containerEl) {
+  display() {
+    const { containerEl } = this;
+
     containerEl.empty();
-    containerEl.createEl("h3", { text: "Unified Outline (MD + PDF)" });
+    containerEl.createEl("h3", {
+      text: "Unified Outline (MD + PDF)"
+    });
 
     new Setting(containerEl)
       .setName("Hide sidebar of a pdf file.")
@@ -519,12 +617,16 @@ class UnifiedOutlineSettingTab {
           .setValue(String(this.plugin.settings.offsetTopPadding ?? 0))
           .onChange(async (val) => {
             const n = Number(val);
-            this.plugin.settings.offsetTopPadding = Number.isFinite(n) ? n : 0;
+
+            this.plugin.settings.offsetTopPadding =
+              Number.isFinite(n) ? n : 0;
+
             await this.plugin.saveSettings();
           });
       });
   }
 }
+
 
 /* =========================
    PLUGIN
